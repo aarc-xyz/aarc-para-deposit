@@ -1,8 +1,7 @@
-import { DynamicWidget, useDynamicContext, useIsLoggedIn } from "@dynamic-labs/sdk-react-core";
 import { AarcFundKitModal } from "@aarc-xyz/fundkit-web-sdk";
-import { useEffect } from "react";
-import { setupAarcButtonOverride } from "../utils/aarcButtonOverride";
 import "../index.css";
+import { ThirdwebClient } from "thirdweb";
+import { ConnectButton, useActiveAccount, } from "thirdweb/react";
 
 interface Props {
     isDark: boolean;
@@ -10,18 +9,13 @@ interface Props {
     logoDark: string;
     aarcModal: AarcFundKitModal;
     onThemeToggle: () => void;
+    thirdWebClient: ThirdwebClient;
 }
 
-const DynamicAarcApp = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
-    const isLoggedIn = useIsLoggedIn();
-    const { primaryWallet, setShowAuthFlow, } = useDynamicContext();
-
-    useEffect(() => {
-        if (aarcModal && primaryWallet?.address) {
-            const cleanup = setupAarcButtonOverride(aarcModal, primaryWallet.address, { debug: true });
-            return cleanup;
-        }
-    }, [aarcModal, primaryWallet?.address]);
+const ThirdWebApp = ({ isDark, logoLight, logoDark, aarcModal, thirdWebClient }: Props) => {
+    const primaryWallet = useActiveAccount();
+    console.log('primaryWallet: ', primaryWallet);
+    const isLoggedIn = false;
 
     const handleFundWallet = () => {
         if (primaryWallet?.address) {
@@ -70,14 +64,7 @@ const DynamicAarcApp = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
 
                     {!isLoggedIn && (
                         <>
-                            <button className="login-signup-button" onClick={() => setShowAuthFlow(true)}>
-                                <div className="placeholder-icon" />
-                                <div className="text-container">
-                                    <span>Login or Signup</span>
-                                </div>
-                                <div className="chevron-right-icon" />
-                                <div className="arrow-narrow-icon" />
-                            </button>
+                            <ConnectButton client={thirdWebClient} />
                             <div className="mt-2 flex items-center justify-center space-x-0.5 text-aarc-text">
                                 <span className="font-semibold text-[10.94px] leading-none">Powered by</span>
                                 <img
@@ -91,9 +78,8 @@ const DynamicAarcApp = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
                             </div>
                         </>
                     )}
-                    {isLoggedIn && primaryWallet && (
+                    {primaryWallet?.address && (
                         <>
-                            <DynamicWidget />
                             <button
                                 onClick={handleFundWallet}
                                 className="w-full mt-4 py-3 px-4 bg-aarc-primary text-aarc-button-text font-medium rounded-[42px] hover:bg-opacity-90 transition-colors"
@@ -119,4 +105,4 @@ const DynamicAarcApp = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
     );
 };
 
-export default DynamicAarcApp;
+export default ThirdWebApp;
