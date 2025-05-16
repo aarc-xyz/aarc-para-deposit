@@ -9,6 +9,7 @@ export default {
       colors: {
         'aarc-bg': '#2D2D2D',
         'aarc-primary': '#A5E547',
+        'aarc-secondary': '#003300',
         'aarc-text': '#C3C3C3',
         'aarc-button-text': '#003300',
         'aarc-border': '#3D3D3D',

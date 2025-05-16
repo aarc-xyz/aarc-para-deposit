@@ -18,8 +18,9 @@ export const AarcProvider: React.FC<{ aarcModal: WebClientInterface, children: R
     return (
         <WagmiProvider config={wagmiConfig}>
             <QueryClientProvider client={queryClient}>
-                <AarcEthWalletConnector aarcWebClient={aarcModal} />
+                <AarcEthWalletConnector aarcWebClient={aarcModal}>
                 {children}
+                </AarcEthWalletConnector>
             </QueryClientProvider>
         </WagmiProvider>
     );

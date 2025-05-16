@@ -1,7 +1,10 @@
 import { AarcFundKitModal } from "@aarc-xyz/fundkit-web-sdk";
 import "../index.css";
-import { ThirdwebClient } from "thirdweb";
-import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import StyledConnectButton from "./StyledConnectButton";
+import DisconnectButton from "./DisconnectButton";
+import { useAccount } from "wagmi";
+import {SafeAccountCard} from "./SafeAccountCard";
+import { useState, useEffect } from "react";
 
 interface Props {
     isDark: boolean;
@@ -9,30 +12,44 @@ interface Props {
     logoDark: string;
     aarcModal: AarcFundKitModal;
     onThemeToggle: () => void;
-    thirdWebClient: ThirdwebClient;
 }
 
-const ThirdWebApp = ({ isDark, logoLight, logoDark, aarcModal, thirdWebClient }: Props) => {
-    const primaryWallet = useActiveAccount();
-    console.log('primaryWallet: ', primaryWallet);
-    const isLoggedIn = !!primaryWallet?.address;
+const SafeDepositModal = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
+    const { address, chain } = useAccount();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    const handleFundWallet = () => {
-        if (primaryWallet?.address) {
-            console.log('primaryWallet?.address: ', primaryWallet?.address);
-            try {
-                aarcModal?.updateDestinationWalletAddress(primaryWallet.address);
-                aarcModal.openModal();
-            } catch (error) {
-                console.error('Error opening Aarc modal:', error);
-            }
+    useEffect(() => {
+        if (chain) {
+            const safeKey = `safeAddress_${chain.id}`;
+            const storedSafeAddress = localStorage.getItem(safeKey);
+            if (!storedSafeAddress) return;
+            setIsLoggedIn(true);
+        }
+    }, [address, chain]);
+
+    const handleSafeGenerated = () => {
+        setIsLoggedIn(true);
+    };
+
+    const handleFundWallet = async () => {
+        if (!address || !window.ethereum || !chain) return;
+        
+        const safeKey = `safeAddress_${chain.id}`;
+        const safeAddress = localStorage.getItem(safeKey);
+        if (!safeAddress) return;
+
+        try {
+            aarcModal?.updateDestinationWalletAddress(safeAddress);
+            aarcModal.openModal();
+        } catch (error) {
+            console.error('Error opening Aarc modal:', error);
         }
     };
 
     const handleDisconnect = () => {
         localStorage.clear();
         sessionStorage.clear();
-
+        setIsLoggedIn(false);
         window.location.reload();
     };
 
@@ -52,41 +69,22 @@ const ThirdWebApp = ({ isDark, logoLight, logoDark, aarcModal, thirdWebClient }:
                             className="w-6 h-6"
                         />
                         <img
-                            className="h-6 w-auto"
-                            src="/thirdweb-name-logo.svg"
-                            alt="Thirdweb Logo"
+                            className="h-8 w-auto"
+                            src="/safe-name-logo.svg"
+                            alt="Safe Logo"
                         />
                     </div>
-                    {primaryWallet?.address && (
-                        <div className="w-[158px] h-[40px]">
-                                    <button
-                                    onClick={handleDisconnect}
-                                    className="w-full h-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-aarc-primary border border-[#0033000D] hover:opacity-90 transition-opacity"
-                                >
-                                    <div className="flex items-center rounded-xl justify-center gap-2 w-full">
-                                        <span className="text-aarc-button-text font-semibold whitespace-nowrap">Logout</span>
-                                        <svg width="16" height="16" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                                            <path d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 192 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128zM160 96c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 32C43 32 0 75 0 128L0 384c0 53 43 96 96 96l64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l64 0z" fill="#003300" />
-                                        </svg>
-                                    </div>
-                                </button>
-                        </div>
-                    )}
-                    {/* <div
-                        onClick={onThemeToggle}
-                        className="w-10 h-10"
-                    >
-                        <img src="/dark_mode.svg" alt="Theme toggle" />
-                    </div> */}
+                    <div className="flex items-center space-x-4">
+                        {address ? <DisconnectButton handleDisconnect={handleDisconnect} /> : <StyledConnectButton onSafeGenerated={handleSafeGenerated} />}
+                    </div>
                 </div>
             </header>
 
             <main className="pt-24 pb-8 px-4 mx-auto max-w-md">
                 <div className="gradient-border">
-
                     {!isLoggedIn ? (
                         <>
-                            <ConnectButton client={thirdWebClient} />
+                            <StyledConnectButton onSafeGenerated={handleSafeGenerated} />
                             <div className="mt-2 flex items-center justify-center space-x-0.5 text-aarc-text">
                                 <span className="font-semibold text-[10.94px] leading-none">Powered by</span>
                                 <img
@@ -101,10 +99,10 @@ const ThirdWebApp = ({ isDark, logoLight, logoDark, aarcModal, thirdWebClient }:
                         </>
                     ) : (
                         <>
-                            <ConnectButton client={thirdWebClient} />
+                            <SafeAccountCard />
                             <button
                                 onClick={handleFundWallet}
-                                className="w-full mt-4 py-3 px-4 bg-aarc-primary text-aarc-button-text font-medium rounded-[42px] hover:bg-opacity-90 transition-colors"
+                                className="w-full mt-2 py-3 px-4 bg-aarc-primary text-aarc-button-text font-medium rounded-[42px] hover:bg-opacity-90 transition-colors"
                             >
                                 Fund Wallet
                             </button>
@@ -127,4 +125,4 @@ const ThirdWebApp = ({ isDark, logoLight, logoDark, aarcModal, thirdWebClient }:
     );
 };
 
-export default ThirdWebApp;
+export default SafeDepositModal;

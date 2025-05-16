@@ -7,7 +7,7 @@ import {
 } from "@aarc-xyz/fundkit-web-sdk";
 
 export const aarcConfig: FKConfig = {
-    appName: "Thirdweb x Aarc",
+    appName: "Safe x Aarc",
     module: {
         exchange: {
             enabled: true,
