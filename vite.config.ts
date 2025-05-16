@@ -3,12 +3,5 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  preview: {
-    host: '0.0.0.0',
-    allowedHosts: [
-      'dynamic-aarc-example-3.onrender.com',
-      '.onrender.com' // This will allow all subdomains on render.com
-    ]
-  }
+  plugins: [react()]
 })
