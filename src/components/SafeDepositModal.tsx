@@ -75,7 +75,7 @@ const SafeDepositModal = ({ isDark, logoLight, logoDark, aarcModal }: Props) => 
                         />
                     </div>
                     <div className="flex items-center space-x-4">
-                        {address ? <DisconnectButton handleDisconnect={handleDisconnect} /> : <StyledConnectButton onSafeGenerated={handleSafeGenerated} />}
+                        {address && isLoggedIn && <DisconnectButton handleDisconnect={handleDisconnect} />}
                     </div>
                 </div>
             </header>
