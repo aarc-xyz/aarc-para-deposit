@@ -1,6 +1,6 @@
 import { ConnectButton as RainbowConnectButton } from "@rainbow-me/rainbowkit";
 import Safe, { PredictedSafeProps } from '@safe-global/protocol-kit';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 
 interface Props {
@@ -10,6 +10,14 @@ interface Props {
 const StyledConnectButton = ({ onSafeGenerated }: Props) => {
     const { address, chain } = useAccount();
     const [isLoading, setIsLoading] = useState(false);
+    const [shouldGenerateSafe, setShouldGenerateSafe] = useState(false);
+
+    useEffect(() => {
+        if (shouldGenerateSafe && address) {
+            generateSafeWallet();
+            setShouldGenerateSafe(false);
+        }
+    }, [address, shouldGenerateSafe]);
 
     const generateSafeWallet = async () => {
         if (!address || !window.ethereum || !chain) return;
@@ -97,9 +105,10 @@ const StyledConnectButton = ({ onSafeGenerated }: Props) => {
                     return (
                         <button
                             onClick={async () => {
-                                await openConnectModal();
-                                // Wait for wallet connection
-                                if (address) {
+                                if (!address) {
+                                    await openConnectModal();
+                                    setShouldGenerateSafe(true);
+                                } else {
                                     await generateSafeWallet();
                                 }
                             }}
