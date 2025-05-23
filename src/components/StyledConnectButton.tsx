@@ -108,8 +108,6 @@ const StyledConnectButton = ({ onSafeGenerated }: Props) => {
                                 if (!address) {
                                     await openConnectModal();
                                     setShouldGenerateSafe(true);
-                                } else {
-                                    await generateSafeWallet();
                                 }
                             }}
                             disabled={isLoading}

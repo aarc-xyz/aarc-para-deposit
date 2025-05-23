@@ -2,8 +2,8 @@ import { AarcFundKitModal } from "@aarc-xyz/fundkit-web-sdk";
 import "../index.css";
 import StyledConnectButton from "./StyledConnectButton";
 import DisconnectButton from "./DisconnectButton";
-import { useAccount } from "wagmi";
-import {SafeAccountCard} from "./SafeAccountCard";
+import { useAccount, useDisconnect } from "wagmi";
+import { SafeAccountCard } from "./SafeAccountCard";
 import { useState, useEffect } from "react";
 
 interface Props {
@@ -16,13 +16,17 @@ interface Props {
 
 const SafeDepositModal = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
     const { address, chain } = useAccount();
+    const { disconnect } = useDisconnect();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
         if (chain) {
             const safeKey = `safeAddress_${chain.id}`;
             const storedSafeAddress = localStorage.getItem(safeKey);
-            if (!storedSafeAddress) return;
+            if (!storedSafeAddress) {
+                setIsLoggedIn(false);
+                return;
+            }
             setIsLoggedIn(true);
         }
     }, [address, chain]);
@@ -47,10 +51,13 @@ const SafeDepositModal = ({ isDark, logoLight, logoDark, aarcModal }: Props) => 
     };
 
     const handleDisconnect = () => {
-        localStorage.clear();
-        sessionStorage.clear();
+        disconnect();
         setIsLoggedIn(false);
-        window.location.reload();
+        // Clear only the current chain's Safe address
+        if (chain) {
+            const safeKey = `safeAddress_${chain.id}`;
+            localStorage.removeItem(safeKey);
+        }
     };
 
     return (
@@ -69,7 +76,7 @@ const SafeDepositModal = ({ isDark, logoLight, logoDark, aarcModal }: Props) => 
                             className="w-6 h-6"
                         />
                         <img
-                            className="h-8 w-auto"
+                            className="h-6 w-auto"
                             src="/safe-name-logo.svg"
                             alt="Safe Logo"
                         />
@@ -102,7 +109,7 @@ const SafeDepositModal = ({ isDark, logoLight, logoDark, aarcModal }: Props) => 
                             <SafeAccountCard />
                             <button
                                 onClick={handleFundWallet}
-                                className="w-full mt-2 py-3 px-4 bg-aarc-primary text-aarc-button-text font-medium rounded-[42px] hover:bg-opacity-90 transition-colors"
+                                className="w-full mt-4 py-3 px-4 bg-aarc-primary text-aarc-button-text font-medium rounded-[42px] hover:bg-opacity-90 transition-colors"
                             >
                                 Fund Wallet
                             </button>
