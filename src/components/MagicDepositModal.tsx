@@ -1,8 +1,7 @@
 import { AarcFundKitModal } from "@aarc-xyz/fundkit-web-sdk";
 import "../index.css";
 import DisconnectButton from "./DisconnectButton";
-import { useAccount, useDisconnect } from "wagmi";
-import { MagicAccountCard } from "./SafeAccountCard";
+import { MagicAccountCard } from "./MagicAccountCard";
 import { useState, useEffect } from "react";
 import { MagicSDKExtensionsOption } from "magic-sdk";
 import { InstanceWithExtensions, SDKBase } from "@magic-sdk/provider";
@@ -23,8 +22,6 @@ interface Props {
 }
 
 const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Props) => {
-    const { address, chain } = useAccount();
-    const { disconnect } = useDisconnect();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     console.log(isLoading);
@@ -68,7 +65,8 @@ const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Pr
     };
 
     const handleFundWallet = async () => {
-        if (!address || !window.ethereum || !chain || !magicAddress) return;
+        if (!magicAddress) return;
+
         try {
             aarcModal?.updateDestinationWalletAddress(magicAddress);
             aarcModal.openModal();
@@ -80,7 +78,6 @@ const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Pr
     const handleDisconnect = async () => {
         try {
             await magic.user.logout();
-            disconnect();
             setIsLoggedIn(false);
         } catch (error) {
             console.error('Error disconnecting:', error);
