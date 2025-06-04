@@ -7,6 +7,12 @@ import { useState, useEffect } from "react";
 import { MagicSDKExtensionsOption } from "magic-sdk";
 import { InstanceWithExtensions, SDKBase } from "@magic-sdk/provider";
 
+declare global {
+    interface Window {
+        ethereum?: any;
+    }
+}
+
 interface Props {
     isDark: boolean;
     logoLight: string;
@@ -21,16 +27,18 @@ const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Pr
     const { disconnect } = useDisconnect();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    console.log(isLoading);
     const [magicAddress, setMagicAddress] = useState<string | null>(null);
 
-    // useEffect(() => {
-    //     const getMagicAddress = async () => {
-    //         const magicInfo = await magic.user.getInfo();
-    //         const magicAddress = magicInfo.publicAddress;
-    //         setMagicAddress(magicAddress);
-    //     };
-    //     getMagicAddress();
-    // }, [magic]);
+    useEffect(() => {
+        if(!isLoggedIn) return;
+        const getMagicAddress = async () => {
+            const magicInfo = await magic.user.getInfo();
+            const magicAddress = magicInfo.publicAddress;
+            setMagicAddress(magicAddress);
+        };
+        getMagicAddress();
+    }, [magic, isLoggedIn]);
 
     useEffect(() => {
         const checkLoginStatus = async () => {
@@ -78,14 +86,6 @@ const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Pr
             console.error('Error disconnecting:', error);
         }
     };
-
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-aarc-bg grid-background flex items-center justify-center">
-                <div className="text-aarc-text">Loading...</div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-aarc-bg grid-background">
