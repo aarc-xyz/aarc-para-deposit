@@ -3,8 +3,8 @@ import "../index.css";
 import DisconnectButton from "./DisconnectButton";
 import { MagicAccountCard } from "./MagicAccountCard";
 import { useState, useEffect } from "react";
-import { MagicSDKExtensionsOption } from "magic-sdk";
 import { InstanceWithExtensions, SDKBase } from "@magic-sdk/provider";
+import { OAuthExtension } from "@magic-ext/oauth2";
 
 declare global {
     interface Window {
@@ -18,7 +18,7 @@ interface Props {
     logoDark: string;
     aarcModal: AarcFundKitModal;
     onThemeToggle: () => void;
-    magic: InstanceWithExtensions<SDKBase, MagicSDKExtensionsOption<string>>
+    magic: InstanceWithExtensions<SDKBase, OAuthExtension[]>
 }
 
 const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Props) => {
