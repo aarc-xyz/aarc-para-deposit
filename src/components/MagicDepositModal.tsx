@@ -70,6 +70,7 @@ const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Pr
             // @ts-ignore
             await magic.oauth2.loginWithRedirect({
                 provider: 'google',
+                redirectURI: window.location.origin,
             });
         } catch (error) {
             console.error('Error with Google login:', error);
@@ -84,6 +85,7 @@ const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Pr
             // @ts-ignore
             await magic.oauth2.loginWithRedirect({
                 provider: 'twitter',
+                redirectURI: window.location.origin,
             });
         } catch (error) {
             console.error('Error with Twitter login:', error);
