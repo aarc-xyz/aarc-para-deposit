@@ -1,9 +1,10 @@
 import { AarcFundKitModal } from "@aarc-xyz/fundkit-web-sdk";
 import "../index.css";
 import DisconnectButton from "./DisconnectButton";
-import { MagicAccountCard } from "./MagicAccountCard";
 import { useState, useEffect } from "react";
-import { InstanceWithExtensions, MagicSDKExtensionsOption, SDKBase } from "@magic-sdk/provider";
+import { ParaModal } from "@getpara/react-sdk";
+import { para } from "../config/paraConfig";
+import { ParaAccountCard } from "./ParaAccountCard";
 
 declare global {
     interface Window {
@@ -17,87 +18,49 @@ interface Props {
     logoDark: string;
     aarcModal: AarcFundKitModal;
     onThemeToggle: () => void;
-    magic: InstanceWithExtensions<SDKBase, MagicSDKExtensionsOption<string>>
 }
 
-const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Props) => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    console.log(isLoading);
-    const [magicAddress, setMagicAddress] = useState<string | null>(null);
-
-    useEffect(() => {
-        if(!isLoggedIn) return;
-        const getMagicAddress = async () => {
-            const magicInfo = await magic.user.getInfo();
-            const magicAddress = magicInfo.publicAddress;
-            setMagicAddress(magicAddress);
-        };
-        getMagicAddress();
-    }, [magic, isLoggedIn]);
-
-    useEffect(() => {
-        const checkLoginStatus = async () => {
-            try {
-                const isUserLoggedIn = await magic.user.isLoggedIn();
-                setIsLoggedIn(isUserLoggedIn);
-            } catch (error) {
-                console.error('Error checking login status:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        checkLoginStatus();
-    }, [magic]);
-
-    const handleConnect = async () => {
-        try {
-            setIsLoading(true);
-            await magic.wallet.connectWithUI();
-            setIsLoggedIn(true);
-        } catch (error) {
-            console.error('Error connecting wallet:', error);
-        } finally {
-            setIsLoading(false);
+const ParaDepositModal = ({ isDark, logoLight, logoDark, aarcModal }: Props) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [wallet, setWallet] = useState<string>("");
+  
+    const handleCheckIfAuthenticated = async () => {
+      setIsLoading(true);
+      try {
+        const isAuthenticated = await para.isFullyLoggedIn();
+        setIsConnected(isAuthenticated);
+        if (isAuthenticated) {
+          const wallets = Object.values(await para.getWallets());
+          if (wallets?.length) {
+            setWallet(wallets[0].address || "unknown");
+          }
         }
+      } catch (err: any) {
+        console.error(err.message || "An error occurred during authentication");
+      }
+      setIsLoading(false);
+    };
+  
+    useEffect(() => {
+      handleCheckIfAuthenticated();
+    }, [isOpen]);
+  
+    const handleOpenModal = () => {
+      setIsOpen(true);
     };
 
-    // const handleGoogleLogin = async () => {
-    //     try {
-    //         setIsLoading(true);
-    //         // @ts-ignore
-    //         await magic.oauth2.loginWithRedirect({
-    //             provider: 'google',
-    //             redirectURI: window.location.origin,
-    //         });
-    //     } catch (error) {
-    //         console.error('Error with Google login:', error);
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
-
-    // const handleTwitterLogin = async () => {
-    //     try {
-    //         setIsLoading(true);
-    //         // @ts-ignore
-    //         await magic.oauth2.loginWithRedirect({
-    //             provider: 'twitter',
-    //             redirectURI: window.location.origin,
-    //         });
-    //     } catch (error) {
-    //         console.error('Error with Twitter login:', error);
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
+    const handleParaModalClose = () => {
+      setIsOpen(false);
+      window.location.reload();
+    };
 
     const handleFundWallet = async () => {
-        if (!magicAddress) return;
+        if (!wallet) return;
 
         try {
-            aarcModal?.updateDestinationWalletAddress(magicAddress);
+            aarcModal?.updateDestinationWalletAddress(wallet);
             aarcModal.openModal();
         } catch (error) {
             console.error('Error opening Aarc modal:', error);
@@ -106,8 +69,8 @@ const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Pr
 
     const handleDisconnect = async () => {
         try {
-            await magic.user.logout();
-            setIsLoggedIn(false);
+            await para.logout();
+            setIsConnected(false);
         } catch (error) {
             console.error('Error disconnecting:', error);
         }
@@ -129,43 +92,49 @@ const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Pr
                             className="w-6 h-6"
                         />
                         <img
-                            className="h-8 w-auto"
-                            src="/magic-name-logo.svg"
+                            className="h-6 w-auto"
+                            src="/para-name-logo.svg"
                             alt="Safe Logo"
                         />
                     </div>
                     <div className="flex items-center space-x-4">
-                        {isLoggedIn && <DisconnectButton handleDisconnect={handleDisconnect} />}
+                        {isConnected && <DisconnectButton handleDisconnect={handleDisconnect} />}
                     </div>
                 </div>
             </header>
 
-            <main className="pt-24 pb-8 px-4 mx-auto max-w-md">
+            <ParaModal
+                                para={para}
+                                isOpen={isOpen}
+                                appName="Aarc x Para"
+                                logo="/logo.svg"
+                                onClose={handleParaModalClose}
+                                theme={{
+                                foregroundColor: "#C3C3C3",
+                                backgroundColor: "#2D2D2D", 
+                                accentColor: "#A5E547", 
+                                darkForegroundColor: "#C3C3C3",
+                                darkBackgroundColor: "#2D2D2D",
+                                darkAccentColor: "#A5E547",
+                                mode: "dark",
+                                borderRadius: "none",
+                                font: "DM Sans",
+                            }}
+                            />
+
+            {!isOpen && <main className="pt-24 pb-8 px-4 mx-auto max-w-md">
                 <div className="gradient-border">
-                    {!isLoggedIn ? (
+                    {!isConnected ? (
                         <>
                             <div className="flex flex-col gap-3">
                                 <button
-                                    onClick={handleConnect}
+                                    onClick={handleOpenModal}
                                     className="w-full py-3 px-4 bg-aarc-primary text-aarc-button-text font-medium rounded-[42px] hover:bg-opacity-90 transition-colors flex items-center gap-2"
                                 >
                                     <img src="/mail-icon.svg" alt="Email" className="w-5 h-5" />
-                                    <span className="flex-1 text-center">Login / Signup with Email</span>
+                                    <span className="flex-1 text-center">Login / Signup</span>
                                 </button>
-                                {/* <button
-                                    onClick={handleGoogleLogin}
-                                    className="w-full py-3 px-4 bg-white text-gray-800 font-medium rounded-[42px] hover:bg-opacity-90 transition-colors flex items-center gap-2"
-                                >
-                                    <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
-                                    <span className="flex-1 text-center">Continue with Google</span>
-                                </button>
-                                <button
-                                    onClick={handleTwitterLogin}
-                                    className="w-full py-3 px-4 bg-black text-white font-medium rounded-[42px] hover:bg-opacity-90 transition-colors flex items-center gap-2"
-                                >
-                                    <img src="/x-icon.svg" alt="X" className="w-5 h-5" />
-                                    <span className="flex-1 text-center">Continue with X</span>
-                                </button> */}
+                                
                             </div>
                             <div className="mt-2 flex items-center justify-center space-x-0.5 text-aarc-text">
                                 <span className="font-semibold text-[10.94px] leading-none">Powered by</span>
@@ -181,9 +150,10 @@ const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Pr
                         </>
                     ) : (
                         <>
-                            <MagicAccountCard magicAddress={magicAddress} />
+                            <ParaAccountCard paraAddress={wallet} />
                             <div className="w-full flex flex-col gap-4 mt-4">
                                 <button
+                                    disabled={isLoading}
                                     onClick={handleFundWallet}
                                     className="w-full py-3 px-4 bg-aarc-primary text-aarc-button-text font-medium rounded-[42px] hover:bg-opacity-90 transition-colors"
                                 >
@@ -204,9 +174,9 @@ const MagicDepositModal = ({ isDark, logoLight, logoDark, aarcModal, magic }: Pr
                         </>
                     )}
                 </div>
-            </main>
+            </main>}
         </div>
     );
 };
 
-export default MagicDepositModal;
+export default ParaDepositModal;

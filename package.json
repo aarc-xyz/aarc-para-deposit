@@ -1,5 +1,5 @@
 {
-  "name": "aarc-magic-deposit",
+  "name": "aarc-para-deposit",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,11 +12,10 @@
   "dependencies": {
     "@aarc-xyz/eth-connector": "^0.1.7",
     "@aarc-xyz/fundkit-web-sdk": "^0.1.4",
-    "@magic-ext/oauth2": "^11.1.0",
+    "@getpara/react-sdk": "^1.18.0",
     "@rainbow-me/rainbowkit": "^2.2.3",
     "@tanstack/react-query": "^5.66.3",
     "ethers": "^6.14.1",
-    "magic-sdk": "^29.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "viem": "^2.23.2",
@@ -36,6 +35,7 @@
     "tailwindcss": "^3.4.1",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.22.0",
-    "vite": "^6.1.0"
+    "vite": "^6.1.0",
+    "vite-plugin-node-polyfills": "^0.23.0"
   }
 }
